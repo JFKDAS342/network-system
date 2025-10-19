@@ -15,7 +15,7 @@ using namespace std;
 
 string ConnectionMonitor::hexToIP(const string &hex_Ip)
 {
-    if (hex_Ip.empty() || hex_Ip == "00000000") // Исправлено: было "0000000"
+    if (hex_Ip.empty() || hex_Ip == "00000000") 
     {
         return "0.0.0.0";
     }
@@ -29,18 +29,18 @@ string ConnectionMonitor::hexToIP(const string &hex_Ip)
     return string(inet_ntoa(addr));
 }
 
-// функция преобразования hex порта - ИСПРАВЛЕНО: возвращает int
+
 int ConnectionMonitor::hexToPort(const string &hex_Port)
 {
     if (hex_Port.empty() || hex_Port == "0000")
     {
         return 0;
     }
-    return stoul(hex_Port, nullptr, 16); // Исправлено: убрано "hex_port", добавлена ;
+    return stoul(hex_Port, nullptr, 16); 
 }
 
-// получение имени по состоянию кода - ИСПРАВЛЕНО
-string ConnectionMonitor::getStateName(const string &state_code) // Исправлено имя параметра
+
+string ConnectionMonitor::getStateName(const string &state_code) 
 {
     int state = stoi(state_code, nullptr, 16);
 
@@ -89,22 +89,22 @@ int ConnectionMonitor::findPIDByinode(unsigned long inode)
         {
             char *endptr;
             long pid = strtol(entry->d_name, &endptr, 10);
-            if (*endptr == '\0' && pid > 0) // Исправлено: было "\0" (нужен символ, не строка)
+            if (*endptr == '\0' && pid > 0) 
             {
                 // we check dir fd for process
-                string fd_path = string("/proc/") + entry->d_name + "/fd"; // Исправлено: добавлен /
+                string fd_path = string("/proc/") + entry->d_name + "/fd"; 
                 DIR *fd_dir = opendir(fd_path.c_str());
                 if (fd_dir)
                 {
                     struct dirent *fd_entry;
-                    while ((fd_entry = readdir(fd_dir)) != nullptr) // Исправлено: было ==
+                    while ((fd_entry = readdir(fd_dir)) != nullptr) 
                     {
                         if (fd_entry->d_type == DT_LNK)
                         {
                             char link_path[256];
                             snprintf(link_path, sizeof(link_path), "%s/%s", fd_path.c_str(), fd_entry->d_name);
 
-                            char link_target[256]; // Исправлено: было link_targete
+                            char link_target[256]; 
                             ssize_t len = readlink(link_path, link_target, sizeof(link_target) - 1);
                             if (len != -1)
                             {
@@ -137,12 +137,12 @@ string ConnectionMonitor::getProcessName(int pid)
         return "unknown";
     }
     // пробуем прочитать из /proc/pid/comm
-    string comm_path = "/proc/" + to_string(pid) + "/comm"; // Исправлено: было /com
-    ifstream comm_file(comm_path);                          // Исправлено: убрано =
+    string comm_path = "/proc/" + to_string(pid) + "/comm"; 
+    ifstream comm_file(comm_path);                          
     if (comm_file.is_open())
     {
         string process_name;
-        getline(comm_file, process_name); // Исправлено: добавлена ;
+        getline(comm_file, process_name);
         if (!process_name.empty())
         {
             return process_name;
@@ -150,16 +150,16 @@ string ConnectionMonitor::getProcessName(int pid)
     }
 
     // если не получилось прочитать, читаем из /proc/pid/status
-    string status_path = "/proc/" + to_string(pid) + "/status"; // Исправлено: добавлен /
-    ifstream status_file(status_path);                          // Исправлено: убрано =
+    string status_path = "/proc/" + to_string(pid) + "/status"; 
+    ifstream status_file(status_path);                          
     if (status_file.is_open())
     {
         string line;
-        while (getline(status_file, line)) // Исправлено: убраны лишние скобки
+        while (getline(status_file, line)) 
         {
-            if (line.find("Name:") == 0) // Исправлено: было "name:"
+            if (line.find("Name:") == 0) 
             {
-                return line.substr(6); // убираем "Name:\t"
+                return line.substr(6);
             }
         }
     }
@@ -191,7 +191,7 @@ vector<NetworkConnection> ConnectionMonitor::getTCPConnections()
         if (!(iss >> token))
             continue;
 
-        // ЛОКАЛЬНЫЙ адрес формата IP:PORT - ИСПРАВЛЕНО
+        // ЛОКАЛЬНЫЙ адрес формата IP:PORT 
         if (!(iss >> token))
             continue;
 
@@ -199,11 +199,11 @@ vector<NetworkConnection> ConnectionMonitor::getTCPConnections()
         if (colon_pos == string::npos)
             continue;
 
-        string local_ip_hex = token.substr(0, colon_pos);    // Исправлено: было remote_ip_hex
-        string local_port_hex = token.substr(colon_pos + 1); // Исправлено: было remote_ip_port
+        string local_ip_hex = token.substr(0, colon_pos);    
+        string local_port_hex = token.substr(colon_pos + 1);
         conn.local_address = hexToIP(local_ip_hex) + ":" + to_string(hexToPort(local_port_hex));
 
-        // УДАЛЕННЫЙ адрес - ИСПРАВЛЕНО
+        
         if (!(iss >> token))
             continue;
 
@@ -349,7 +349,7 @@ vector<NetworkConnection> ConnectionMonitor::filterByProtocol(const vector<Netwo
     return result;
 }
 
-// фильтрация по состоянию - ИСПРАВЛЕНО
+// фильтрация по состоянию 
 vector<NetworkConnection> ConnectionMonitor::filterByState(const vector<NetworkConnection> &connections, const string &state)
 {
     vector<NetworkConnection> result;
@@ -357,7 +357,7 @@ vector<NetworkConnection> ConnectionMonitor::filterByState(const vector<NetworkC
     transform(upper_state.begin(), upper_state.end(), upper_state.begin(), ::toupper);
 
     copy_if(connections.begin(), connections.end(), back_inserter(result),
-            [&upper_state](const NetworkConnection &conn) // Исправлено: добавлен параметр conn
+            [&upper_state](const NetworkConnection &conn)
             {
                 string conn_state = conn.state;
                 transform(conn_state.begin(), conn_state.end(), conn_state.begin(), ::toupper);
@@ -366,21 +366,21 @@ vector<NetworkConnection> ConnectionMonitor::filterByState(const vector<NetworkC
     return result;
 }
 
-// фильтрация по порту - ИСПРАВЛЕНО
-vector<NetworkConnection> ConnectionMonitor::filterByPort(const vector<NetworkConnection> &connections, int port) // Исправлено: убрано const
+// фильтрация по порту
+vector<NetworkConnection> ConnectionMonitor::filterByPort(const vector<NetworkConnection> &connections, int port) 
 {
     vector<NetworkConnection> result;
-    copy_if(connections.begin(), connections.end(), back_inserter(result), // Исправлено: было connections.begin()
+    copy_if(connections.begin(), connections.end(), back_inserter(result), 
             [port](const NetworkConnection &conn)
             {
                 // проверяем локальный порт
                 size_t colon_pos = conn.local_address.find(':');
-                if (colon_pos != string::npos) // Исправлено: убраны ()
+                if (colon_pos != string::npos) 
                 {
                     string port_str = conn.local_address.substr(colon_pos + 1);
                     try
                     {
-                        return stoi(port_str) == port; // Исправлено: добавлено сравнение
+                        return stoi(port_str) == port; 
                     }
                     catch (...)
                     {

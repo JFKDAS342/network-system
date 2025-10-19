@@ -3,9 +3,6 @@
 
 using namespace std;
 
-// Убрана неиспользуемая функция showMenu()
-// int showMenu(); // Эта функция объявлена, но не определена и не используется
-
 int main()
 {
     ConnectionMonitor monitor;

@@ -7,7 +7,7 @@
 
 using namespace std;
 
-struct NetworkConnection // ЛАТИНСКАЯ 'C'
+struct NetworkConnection
 {
     string protocol;
     string local_address;
@@ -25,26 +25,26 @@ private:
     int hexToPort(const string &hex_port);
     string getStateName(const string &state_code);
     int findPIDByinode(unsigned long inode);
-    string getProcessName(int pid); // ОДНА 'c' - getProcessName
+    string getProcessName(int pid);
 
 public:
-    vector<NetworkConnection> getTCPConnections(); // ЛАТИНСКАЯ 'C'
-    vector<NetworkConnection> getUDPConnections(); // ЛАТИНСКАЯ 'C'
-    vector<NetworkConnection> getAllConnections(); // ЛАТИНСКАЯ 'C'
+    vector<NetworkConnection> getTCPConnections();
+    vector<NetworkConnection> getUDPConnections();
+    vector<NetworkConnection> getAllConnections();
 
-    vector<NetworkConnection> filterByProtocol(       // ЛАТИНСКАЯ 'C'
-        const vector<NetworkConnection> &connections, // ЛАТИНСКАЯ 'C'
+    vector<NetworkConnection> filterByProtocol(
+        const vector<NetworkConnection> &connections,
         const string &protocol);
 
-    vector<NetworkConnection> filterByState(          // ЛАТИНСКАЯ 'C'
-        const vector<NetworkConnection> &connections, // ЛАТИНСКАЯ 'C'
+    vector<NetworkConnection> filterByState(
+        const vector<NetworkConnection> &connections,
         const string &state);
 
-    vector<NetworkConnection> filterByPort(           // ЛАТИНСКАЯ 'C'
-        const vector<NetworkConnection> &connections, // ЛАТИНСКАЯ 'C'
+    vector<NetworkConnection> filterByPort(
+        const vector<NetworkConnection> &connections,
         int port);
 
-    void printConnections(const vector<NetworkConnection> &connections); // ЛАТИНСКАЯ 'C'
+    void printConnections(const vector<NetworkConnection> &connections);
     map<string, int> getConnectionStatistics();
 };
 

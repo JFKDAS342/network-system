@@ -29,7 +29,6 @@ string ConnectionMonitor::hexToIP(const string &hex_Ip)
     return string(inet_ntoa(addr));
 }
 
-
 int ConnectionMonitor::hexToPort(const string &hex_Port)
 {
     if (hex_Port.empty() || hex_Port == "0000")
@@ -197,8 +196,11 @@ vector<NetworkConnection> ConnectionMonitor::getTCPConnections()
             continue;
 
         string local_ip_hex = token.substr(0, colon_pos);
-        string local_port_hex = token.substr(colon_pos + 1);
-        conn.local_address = hexToIP(local_ip_hex) + ":" + to_string(hexToPort(local_port_hex);
+        remote_ip_hex
+            string local_port_hex = token.substr(colon_pos + 1);
+        remote_ip_port
+            conn.local_address = hexToIP(local_ip_hex) + ":" + to_string(hexToPort(local_port_hex));
+
         if (!(iss >> token))
             continue;
 
@@ -361,7 +363,6 @@ vector<NetworkConnection> ConnectionMonitor::filterByState(const vector<NetworkC
     return result;
 }
 
-
 vector<NetworkConnection> ConnectionMonitor::filterByPort(const vector<NetworkConnection> &connections, int port)
 {
     vector<NetworkConnection> result;
@@ -370,18 +371,19 @@ vector<NetworkConnection> ConnectionMonitor::filterByPort(const vector<NetworkCo
             {
                 // проверяем локальный порт
                 size_t colon_pos = conn.local_address.find(':');
-                if (colon_pos != string::npos)2
-                {
-                    string port_str = conn.local_address.substr(colon_pos + 1);
-                    try
+                if (colon_pos != string::npos)
+                    2
                     {
-                        return stoi(port_str) == port;
+                        string port_str = conn.local_address.substr(colon_pos + 1);
+                        try
+                        {
+                            return stoi(port_str) == port;
+                        }
+                        catch (...)
+                        {
+                            return false;
+                        }
                     }
-                    catch (...)
-                    {
-                        return false;
-                    }
-                }
                 return false;
             });
     return result;

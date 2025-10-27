@@ -8,6 +8,8 @@
 #include <unistd.h>
 #include <algorithm>
 #include <cstdint>
+#include <chrono>
+#include <thread>
 
 #include "../include/ConnectionMonitor.h"
 
@@ -196,10 +198,8 @@ vector<NetworkConnection> ConnectionMonitor::getTCPConnections()
             continue;
 
         string local_ip_hex = token.substr(0, colon_pos);
-        remote_ip_hex
-            string local_port_hex = token.substr(colon_pos + 1);
-        remote_ip_port
-            conn.local_address = hexToIP(local_ip_hex) + ":" + to_string(hexToPort(local_port_hex));
+        string local_port_hex = token.substr(colon_pos + 1);
+        conn.local_address = hexToIP(local_ip_hex) + ":" + to_string(hexToPort(local_port_hex));
 
         if (!(iss >> token))
             continue;
@@ -372,24 +372,112 @@ vector<NetworkConnection> ConnectionMonitor::filterByPort(const vector<NetworkCo
                 // проверяем локальный порт
                 size_t colon_pos = conn.local_address.find(':');
                 if (colon_pos != string::npos)
-                    2
+                {
+                    string port_str = conn.local_address.substr(colon_pos + 1);
+                    try
                     {
-                        string port_str = conn.local_address.substr(colon_pos + 1);
-                        try
-                        {
-                            return stoi(port_str) == port;
-                        }
-                        catch (...)
-                        {
-                            return false;
-                        }
+                        return stoi(port_str) == port;
                     }
+                    catch (...)
+                    {
+                        return false;
+                    }
+                }
                 return false;
             });
     return result;
 }
+string ConnectionMonitor::getColoredState(const string &state)
+{
+    if (state == "ESTABLISHED")
+        return "\033[32m" + state + "\033[0m";
+    if (state == "LISTEN")
+        return "\033[33m" + state + "\033[0m";
+    if (state == "TIME_WAIT")
+        return "\033[34m" + state + "\033[0m";
+    if (state == "UDP")
+        return "\033[36m" + state + "\033[0m";
+    return "\033[31m" + state + "\033[0m";
+}
 
-void ConnectionMonitor::printConnections(const vector<NetworkConnection> &connections)
+void ConnectionMonitor::realTimeMonitoring(int duration_second, int refresh_interval)
+{
+    cout << "Starting real-time monitoring for " << duration_second << " seconds..." << endl;
+    cout << "Press Ctrl+C to stop early" << endl;
+
+    auto start_time = chrono::steady_clock::now();
+    int cycle = 0;
+
+    while (true)
+    {
+        cycle++;
+
+        // Очищаем экран
+        cout << "\033[2J\033[1;1H"; // ANSI escape codes для очистки
+
+        auto current_time = chrono::steady_clock::now();
+        auto elapsed = chrono::duration_cast<chrono::seconds>(current_time - start_time).count();
+
+        if (elapsed >= duration_second)
+        {
+            break;
+        }
+
+        cout << "=== REAL-TIME NETWORK MONITOR ===" << endl;
+        cout << "Cycle: " << cycle << " | Time: " << elapsed << "/" << duration_second << "s" << endl;
+        cout << "Refresh interval: " << refresh_interval << "s" << endl;
+        cout << string(60, '=') << endl;
+
+        // Получаем и выводим соединения с цветом
+        auto connections = getAllConnections();
+        printConnections(connections, true); // use_color = true
+
+        // Статистика
+        auto stats = getConnectionStatistics();
+        cout << "\nStatistics: ";
+        for (const auto &stat : stats)
+        {
+            cout << stat.first << ": " << stat.second << " ";
+        }
+        cout << endl;
+
+        cout << "\nNext update in " << refresh_interval << " seconds..." << endl;
+
+        // Ждем перед следующим обновлением
+        this_thread::sleep_for(chrono::seconds(refresh_interval));
+    }
+
+    cout << "Real-time monitoring completed!" << endl;
+}
+
+vector<NetworkConnection> ConnectionMonitor::sortByLocalAddress(const vector<NetworkConnection> &connections)
+{
+    vector<NetworkConnection> sorted = connections;
+    sort(sorted.begin(), sorted.end(), [](const NetworkConnection &a, const NetworkConnection &b)
+         { return a.local_address < b.local_address; });
+    return sorted;
+}
+
+vector<NetworkConnection> ConnectionMonitor::sortByPID(const vector<NetworkConnection> &connections)
+{
+    vector<NetworkConnection> sorted = connections;
+    sort(sorted.begin(), sorted.end(),
+         [](const NetworkConnection &a, const NetworkConnection &b)
+         {
+             return a.pid < b.pid;
+         });
+    return sorted;
+}
+
+vector<NetworkConnection> ConnectionMonitor::sortByState(const vector<NetworkConnection> &connections)
+{
+    vector<NetworkConnection> sorted = connections;
+    sort(sorted.begin(), sorted.end(), [](const NetworkConnection &a, NetworkConnection &b)
+         { return a.state < b.state; });
+    return sorted;
+}
+
+void ConnectionMonitor::printConnections(const vector<NetworkConnection> &connections, bool use_color)
 {
     cout << "Found " << connections.size() << " connections" << endl;
 
@@ -412,11 +500,13 @@ void ConnectionMonitor::printConnections(const vector<NetworkConnection> &connec
 
     for (const auto &conn : connections)
     {
+        string display_state = use_color ? getColoredState(conn.state) : conn.state;
+
         cout << left
              << setw(8) << conn.protocol
              << setw(25) << conn.local_address
              << setw(25) << conn.remote_address
-             << setw(15) << conn.state
+             << setw(15) << display_state
              << setw(8) << (conn.pid > 0 ? to_string(conn.pid) : "N/A")
              << setw(15) << (conn.process_name.length() > 14 ? conn.process_name.substr(0, 14) : conn.process_name)
              << setw(10) << conn.inode

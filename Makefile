@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -I./include -std=c++11
+CXXFLAGS = -std=c++11 -Wall -Wextra -pthread
 SOURCES = src/main.cpp src/ConnectionMonitor.cpp
 TARGET = monitor
 

@@ -43,9 +43,18 @@ public:
     vector<NetworkConnection> filterByPort(
         const vector<NetworkConnection> &connections,
         int port);
+    // вывод всех соединений
+    void printConnections(const vector<NetworkConnection> &connections, bool use_color = false);
 
-    void printConnections(const vector<NetworkConnection> &connections);
+    string getColoredState(const string &state);
+
     map<string, int> getConnectionStatistics();
+    // обнрвление статистики в реал времени
+    void realTimeMonitoring(int duration_second = 30, int refresh_interval = 2);
+    // сортировка
+    vector<NetworkConnection> sortByLocalAddress(const vector<NetworkConnection> &connections);
+    vector<NetworkConnection> sortByState(const vector<NetworkConnection> &connections);
+    vector<NetworkConnection> sortByPID(const vector<NetworkConnection> &connections);
 };
 
 #endif
